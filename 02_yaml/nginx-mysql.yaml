@@ -1,0 +1,73 @@
+- name: Enable web services
+  hosts: seoul
+  become: yes
+  tasks:
+  - name: nginx and firewalld installed
+    yum:
+      name:
+      - nginx
+      - firewalld
+      state: latest
+  - name: index page is installed
+    copy:
+      content: "Welcome to the bespinglobal.com cloud service!\n"
+      dest: /usr/share/nginx/html/index.html
+  - name: firewalld enabled and running
+    service:
+      name: firewalld
+      enabled: true
+      state: started
+  - name: firewalld permits access to http service
+    firewalld:
+      service: http
+      permanent: true
+      state: enabled
+      immediate: yes
+  - name: nginx enabled and running
+    service:
+      name: nginx
+      enabled: true
+      state: started
+
+- name: Enable MariaDB services
+  hosts: busan
+  become: yes
+  vars:
+     mysql_root_password: Password1234
+  tasks:
+  - name: mariadb installed
+    yum:
+      name:
+      - mariadb
+      - mariadb-server
+      - firewalld
+      - python3-PyMySQL
+      state: latest
+
+  - name: start mariadb service
+    service:
+      name: mariadb
+      enabled: true
+      state: started
+
+  - name: firewalld enabled and running
+    service:
+      name: firewalld
+      enabled: true
+      state: started
+
+  - name: firewalld permits access to mariadb service
+    firewalld:
+      service: mysql
+      permanent: true
+      state: enabled
+      immediate: yes
+
+  - name: set root password
+    mysql_user:
+      check_implicit_admin: true
+      login_user: root
+      login_password: "{{ mysql_root_password }}"
+      user: root                           
+      password: "{{ mysql_root_password }}" 
+
